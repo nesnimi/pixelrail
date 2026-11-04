@@ -1,0 +1,17 @@
+* { font-family: "Noto Sans", "JetBrainsMono Nerd Font", sans-serif; }
+.notification-row .notification-background,
+.control-center {
+  background: rgba(24, 29, 45, 0.97);
+  color: #e8edff;
+  border-radius: 26px;
+  border: 1px solid rgba(153, 176, 239, 0.3);
+}
+.notification { border-radius: 20px; }
+.notification-content { padding: 12px; }
+.widget-title { color: #dbe6ff; font-weight: 700; margin: 10px; }
+.widget-dnd, .widget-mpris, .widget-volume, .widget-backlight, .widget-calendar { margin: 8px; }
+.widget-buttons-grid { margin: 8px; }
+.widget-buttons-grid button { background: #333f5a; border-radius: 16px; color: #ecf1ff; min-height: 48px; margin: 4px; }
+.widget-buttons-grid button.toggle:checked { background: #b9c6ff; color: #20263c; }
+scale trough { border-radius: 10px; background: #353d55; min-height: 9px; }
+scale highlight { background: #9eb7ff; border-radius: 10px; }

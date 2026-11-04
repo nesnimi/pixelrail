@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+"""On-demand menu data/actions. JSON on stdin/stdout; no daemon or polling."""
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import wallpapers
+import clipboard_history
+
+SCRIPTS = Path(__file__).resolve().parent
+MODES = {'keys', 'clipboard', 'command', 'windows', 'controls', 'power', 'wallpaper', 'media', 'emoji'}
+
+def run(argv, data=None):
+    return subprocess.run(argv, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          check=True, timeout=8).stdout
+
+def detach(argv):
+    subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL, start_new_session=True)
+
+def item(key, title, subtitle='', **extra):
+    return dict(id=key, title=title, subtitle=subtitle, **extra)
+
+CONTROLS = [
+    ('applications', 'Приложения'), ('windows', 'Окна'), ('command', 'Выполнить команду'),
+    ('notifications', 'Уведомления'), ('network', 'Wi-Fi', 'nm-connection-editor'),
+    ('bluetooth', 'Bluetooth'), ('volume', 'Громкость'), ('wallpaper', 'Обои'),
+    ('profile', 'Режим графических эффектов'), ('lock', 'Экран блокировки'), ('power', 'Питание'),
+]
+POWER = [('lock', 'Заблокировать'), ('suspend', 'Сон'), ('logout', 'Выйти из Hyprland'),
+         ('reboot', 'Перезагрузить'), ('shutdown', 'Выключить')]
+MEDIA = [('play-pause', 'Воспроизвести / пауза'), ('next', 'Следующий трек'),
+         ('previous', 'Предыдущий трек'), ('mute', 'Без звука')]
+EMOJI = [('😀','Улыбка'),('😂','Смех'),('😍','Любовь'),('🥰','Милота'),('😎','Круто'),
+         ('🤔','Думаю'),('👍','Лайк'),('👎','Дизлайк'),('🙏','Спасибо'),('🔥','Огонь'),
+         ('❤️','Сердце'),('💚','Зелёное сердце'),('✨','Искры'),('🎉','Праздник'),
+         ('💻','Ноутбук'),('⚡','Молния'),('🐧','Linux'),('✅','Галочка'),('❌','Крестик')]
+TITLES = dict(keys='Сочетания клавиш', clipboard='История буфера', command='Выполнить команду',
+              windows='Окна', controls='Быстрые действия', power='Питание', wallpaper='Обои',
+              media='Медиа', emoji='Эмодзи')
+
+def pictures():
+    return Path(os.environ.get('XDG_PICTURES_DIR', str(Path.home() / 'Pictures'))).expanduser()
+
+def clipboard():
+    return run(['cliphist', 'list']).decode('utf-8', 'replace').splitlines()
+
+def listing(mode):
+    if mode == 'keys':
+        binds = json.loads(run(['hyprctl', '-j', 'binds']))
+        rows = []
+        aliases = {'return':'Enter', 'slash':'/', 'space':'Space', 'print':'PrtSc'}
+        for bind in binds:
+            if not bind.get('description') or bind.get('submap', '') not in ('', 'default'):
+                continue
+            key = str(bind.get('key') or bind.get('keycode') or '')
+            mask = int(bind.get('modmask', 0))
+            chord = ' + '.join([name for bit, name in [(64,'Super'),(4,'Ctrl'),(8,'Alt'),(1,'Shift')]
+                               if mask & bit] + [aliases.get(key.lower(), key)])
+            rows.append(item(str(len(rows)), chord, bind['description']))
+        rows.append(item('layout', 'Alt + Shift', 'English / Russian keyboard layout'))
+        return rows
+    if mode == 'clipboard':
+        return clipboard_history.listing()[0]
+    if mode == 'windows':
+        clients = json.loads(run(['hyprctl', '-j', 'clients']))
+        active = json.loads(run(['hyprctl', '-j', 'activewindow'])).get('address')
+        clients.sort(key=lambda w: w.get('address') != active)
+        return [item(w['address'], w.get('title') or w.get('class') or 'Окно',
+                     f"{w.get('class', '')} · {w.get('workspace', {}).get('name', '')}", appClass=w.get('class',''))
+                for w in clients if w.get('mapped', True)]
+    if mode == 'command':
+        names = set()
+        for directory in os.get_exec_path():
+            path = Path(directory or '.')
+            try:
+                names.update(p.name for p in path.iterdir() if p.is_file() and os.access(p, os.X_OK))
+            except OSError:
+                continue
+        return [item(name, name) for name in sorted(names)]
+    if mode == 'controls':
+        return [item(*row) for row in CONTROLS]
+    if mode == 'power':
+        return [item(*row) for row in POWER]
+    if mode == 'media':
+        return [item(*row) for row in MEDIA]
+    if mode == 'emoji':
+        return [item(emoji, emoji + '  ' + name) for emoji, name in EMOJI]
+    if mode == 'wallpaper':
+        return wallpapers.catalog()
+    raise ValueError('Неизвестное меню')
+
+def activate(mode, request):
+    key = str(request.get('id', ''))
+    if mode == 'keys':
+        return {'keep': True}  # Searchable, read-only reference: never execute descriptions.
+    if mode == 'controls':
+        if key not in {row[0] for row in CONTROLS}:
+            raise ValueError('Неизвестное действие')
+        if key in {'applications', 'windows', 'command', 'wallpaper', 'power'}:
+            return {'next': key}
+        commands = {'notifications':['swaync-client','-t','-sw'], 'network':['nm-connection-editor'],
+                    'bluetooth':['blueman-manager'], 'volume':['pavucontrol'],
+                    'profile':[str(SCRIPTS / 'pixelrail-profile'),'toggle'], 'lock':['hyprlock']}
+        detach(commands[key])
+    elif mode == 'power':
+        if key not in {row[0] for row in POWER}:
+            raise ValueError('Неизвестное действие питания')
+        if key != 'lock' and request.get('confirmed') is not True:
+            return {'confirm': key, 'title': dict(POWER)[key] + '?'}
+        if key == 'logout':
+            if shutil.which('uwsm') and os.environ.get('UWSM_APP_UNIT'):
+                detach(['uwsm', 'stop'])
+            else:
+                run(['hyprctl', 'eval', 'hl.dispatch(hl.dsp.exit())'])
+        else:
+            detach({'lock':['hyprlock'], 'suspend':['systemctl','suspend'],
+                    'reboot':['systemctl','reboot'], 'shutdown':['systemctl','poweroff']}[key])
+    elif mode == 'clipboard':
+        timings=clipboard_history.restore(request)
+        return {'timings':timings} if os.environ.get('PIXELRAIL_CLIPBOARD_TRACE') == '1' else {}
+    elif mode == 'windows':
+        if not re.fullmatch(r'0x[0-9a-fA-F]+', key):
+            raise ValueError('Неверный адрес окна')
+        if not any(w.get('address') == key for w in json.loads(run(['hyprctl','-j','clients']))):
+            raise ValueError('Окно уже закрыто')
+        run(['hyprctl', 'eval', 'hl.dispatch(hl.dsp.focus({window = "address:' + key + '"}))'])
+    elif mode == 'command':
+        command = str(request.get('command', key)).strip()
+        if not command:
+            return {'keep': True}
+        # Deliberately a command launcher: only an explicit Enter/click executes query.
+        detach(['/bin/sh', '-c', command])
+    elif mode == 'media':
+        if key not in {row[0] for row in MEDIA}:
+            raise ValueError('Неизвестное действие медиа')
+        run(['wpctl','set-mute','@DEFAULT_AUDIO_SINK@','toggle'] if key == 'mute'
+            else ['playerctl',key])
+    elif mode == 'emoji':
+        if key not in {row[0] for row in EMOJI}:
+            raise ValueError('Неизвестный эмодзи')
+        run(['wl-copy'], key.encode())
+    elif mode == 'wallpaper':
+        wallpapers.apply(key)
+        return {'wallpaper':str(Path(key).resolve())}
+    else:
+        raise ValueError('Неизвестное меню')
+    return {}
+
+def main():
+    try:
+        operation, mode = sys.argv[1:3]
+        if mode not in MODES:
+            raise ValueError('Неизвестное меню')
+        if operation == 'list':
+            if mode == 'clipboard':
+                rows,timings=clipboard_history.listing()
+                result={'title':TITLES[mode], 'items':rows}
+                if os.environ.get('PIXELRAIL_CLIPBOARD_TRACE') == '1': result['timings']=timings
+            else:
+                result = {'title': TITLES[mode], 'items': listing(mode)}
+        elif operation == 'thumbnail' and mode == 'clipboard':
+            result = clipboard_history.thumbnail(json.loads(sys.stdin.readline()))
+        elif operation == 'thumbnail' and mode == 'wallpaper':
+            result = {'url':wallpapers.thumbnail(json.loads(sys.stdin.readline())['id'])}
+        elif operation == 'activate':
+            result = activate(mode, json.loads(sys.stdin.readline()))
+        else:
+            raise ValueError('Неизвестная операция')
+    except (OSError, ValueError, subprocess.SubprocessError, IndexError) as error:
+        if isinstance(error, FileNotFoundError):
+            message = 'Не найдена программа: ' + str(error.filename)
+        elif isinstance(error, subprocess.CalledProcessError):
+            message = 'Не удалось выполнить: ' + str(error.cmd[0])
+        else:
+            message = str(error)
+        result = {'error': message}
+    print(json.dumps(result, ensure_ascii=False))
+
+if __name__ == '__main__':
+    main()

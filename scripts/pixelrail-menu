@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Route menus to the persistent Quickshell instance.
+set -euo pipefail
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+config="${PIXELRAIL_QML:-$script_dir/../quickshell/shell.qml}"
+mode="${1:-controls}"
+[[ "$mode" != session ]] || mode=power
+case "$mode" in keys|clipboard|command|windows|controls|power|wallpaper|media|emoji) ;; *) echo "Unknown menu: $mode" >&2; exit 2 ;; esac
+if [[ -f "$config" ]]; then
+    for binary in qs quickshell; do
+        if command -v "$binary" >/dev/null 2>&1; then
+            if result="$("$binary" ipc -p "$config" call menus open "$mode" 2>/dev/null)" && [[ "$result" == true ]]; then
+                exit 0
+            fi
+        fi
+    done
+fi
+exec "$script_dir/pixelrail-shell-error" "меню $mode"

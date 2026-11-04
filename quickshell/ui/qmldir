@@ -1,0 +1,5 @@
+module PixelRail.Ui
+singleton Tokens 1.0 Tokens.qml
+PixelIcon 1.0 PixelIcon.qml
+PixelAppIcon 1.0 PixelAppIcon.qml
+Keycap 1.0 Keycap.qml

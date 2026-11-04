@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# One-shot upgrade/start of the single native text+image cliphist watcher.
+set -euo pipefail
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+exec python3 "$script_dir/clipboard_history.py" watch

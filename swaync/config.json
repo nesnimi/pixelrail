@@ -1,0 +1,77 @@
+{
+  "ignore-gtk-theme": true,
+  "positionX": "right",
+  "positionY": "top",
+  "layer": "overlay",
+  "control-center-layer": "top",
+  "control-center-margin-top": 12,
+  "control-center-margin-right": 12,
+  "control-center-width": 390,
+  "notification-window-width": 380,
+  "notification-grouping": true,
+  "fit-to-screen": true,
+  "timeout": 6,
+  "timeout-critical": 0,
+  "widgets": [
+    "title",
+    "dnd",
+    "buttons-grid",
+    "volume",
+    "backlight",
+    "mpris",
+    "calendar",
+    "notifications"
+  ],
+  "widget-config": {
+    "title": {
+      "text": "PixelRail · центр управления",
+      "clear-all-button": true,
+      "button-text": "Очистить"
+    },
+    "dnd": {
+      "text": "Не беспокоить"
+    },
+    "buttons-grid": {
+      "buttons-per-row": 3,
+      "actions": [
+        {
+          "label": "󰤨  Wi-Fi",
+          "type": "toggle",
+          "command": "bash -lc 'if [[ \"$SWAYNC_TOGGLE_STATE\" == true ]]; then nmcli radio wifi on; else nmcli radio wifi off; fi'",
+          "update-command": "bash -lc '[[ \"$(nmcli radio wifi)\" == enabled ]] && echo true || echo false'"
+        },
+        {
+          "label": "󰂯  BT",
+          "type": "toggle",
+          "command": "bash -lc 'if [[ \"$SWAYNC_TOGGLE_STATE\" == true ]]; then bluetoothctl power on; else bluetoothctl power off; fi'",
+          "update-command": "bash -lc 'bluetoothctl show 2>/dev/null | grep -q \"Powered: yes\" && echo true || echo false'"
+        },
+        {
+          "label": "󰖙  Power",
+          "type": "toggle",
+          "command": "bash -lc 'if [[ \"$SWAYNC_TOGGLE_STATE\" == true ]]; then $HOME/.local/bin/pixelrail-profile performance; else $HOME/.local/bin/pixelrail-profile battery; fi'",
+          "update-command": "bash -lc '[[ \"$(cat \"$HOME/.cache/pixelrail/profile\" 2>/dev/null)\" == performance ]] && echo true || echo false'"
+        },
+        {
+          "label": "󰹑  Screenshot",
+          "command": "bash -lc 'swaync-client -t -sw; sleep 0.2; $HOME/.local/bin/pixelrail-shot'"
+        },
+        {
+          "label": "󰋋  Clipboard",
+          "command": "$HOME/.local/bin/pixelrail-clipboard"
+        },
+        {
+          "label": "󰐥  Power menu",
+          "command": "$HOME/.local/bin/pixelrail-power"
+        }
+      ]
+    },
+    "mpris": {
+      "autohide": true,
+      "show-album-art": "when-available"
+    },
+    "volume": {},
+    "backlight": {},
+    "calendar": {}
+  }
+}

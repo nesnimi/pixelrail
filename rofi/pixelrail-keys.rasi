@@ -1,0 +1,80 @@
+/* PixelRail v0.4 — self-contained high-contrast cheat sheet. */
+configuration {
+    font: "Sans 12";
+    show-icons: false;
+}
+* {
+    background: #111827;
+    surface: #1c2940;
+    surface-focus: #2e4769;
+    text: #f4f7ff;
+    subdued: #bbcbe2;
+    outline: #7596c8;
+    accent: #b3d3ff;
+    background-color: transparent;
+    text-color: @text;
+    spacing: 0;
+}
+window {
+    location: center;
+    anchor: center;
+    width: 860px;
+    border: 2px;
+    border-radius: 22px;
+    border-color: @outline;
+    background-color: @background;
+    padding: 18px;
+}
+mainbox {
+    children: [inputbar, listview];
+    spacing: 12px;
+    background-color: @background;
+}
+inputbar {
+    children: [prompt, entry];
+    spacing: 14px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background-color: @surface;
+}
+prompt {
+    text-color: @accent;
+    background-color: transparent;
+}
+entry {
+    text-color: @text;
+    background-color: transparent;
+    placeholder: "Поиск по клавишам или действиям…";
+    placeholder-color: @subdued;
+    cursor: text;
+}
+listview {
+    columns: 1;
+    lines: 14;
+    fixed-height: false;
+    scrollbar: true;
+    spacing: 4px;
+    background-color: @background;
+}
+element {
+    children: [element-text];
+    padding: 10px 14px;
+    border-radius: 10px;
+    spacing: 8px;
+    background-color: @background;
+    text-color: @text;
+}
+element normal.normal, element alternate.normal {
+    background-color: @background;
+    text-color: @text;
+}
+element selected.normal, element selected.active, element selected.urgent {
+    background-color: @surface-focus;
+    text-color: @text;
+}
+element-text {
+    background-color: transparent;
+    text-color: @text;
+    highlight: bold #b3d3ff;
+}
+scrollbar { background-color: @surface; handle-color: @outline; handle-width: 5px; border-radius: 6px; }

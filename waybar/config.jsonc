@@ -1,0 +1,139 @@
+[
+  {
+    "name": "rail",
+    "layer": "top",
+    "position": "left",
+    "width": 48,
+    "spacing": 6,
+    "margin-top": 7,
+    "margin-bottom": 7,
+    "margin-left": 7,
+    "exclusive": true,
+    "modules-left": [
+      "custom/launcher",
+      "hyprland/workspaces"
+    ],
+    "modules-center": [],
+    "modules-right": [
+      "custom/profile",
+      "network",
+      "pulseaudio",
+      "battery",
+      "custom/notification",
+      "custom/power"
+    ],
+    "custom/launcher": {
+      "format": "󰣇",
+      "tooltip": "Приложения · Super",
+      "on-click": "$HOME/.local/bin/pixelrail-launcher"
+    },
+    "hyprland/workspaces": {
+      "format": "{icon}",
+      "format-icons": {
+        "active": "󰮯",
+        "default": "󰊠",
+        "urgent": "󰀨"
+      },
+      "persistent-workspaces": {
+        "*": 5
+      },
+      "on-click": "activate",
+      "sort-by-number": true,
+      "disable-scroll": true
+    },
+    "custom/profile": {
+      "exec": "$HOME/.local/bin/pixelrail-profile status-waybar",
+      "return-type": "json",
+      "interval": 4,
+      "format": "{}",
+      "on-click": "$HOME/.local/bin/pixelrail-profile toggle"
+    },
+    "network": {
+      "format-wifi": "󰤨",
+      "format-ethernet": "󰈀",
+      "format-disconnected": "󰤭",
+      "tooltip-format-wifi": "{essid} · {signalStrength}%",
+      "on-click": "nm-connection-editor"
+    },
+    "pulseaudio": {
+      "format": "{icon}",
+      "format-muted": "󰖁",
+      "format-icons": {
+        "default": [
+          "󰕿",
+          "󰖀",
+          "󰕾"
+        ]
+      },
+      "tooltip-format": "Громкость: {volume}%",
+      "on-click": "pavucontrol",
+      "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+    "battery": {
+      "format": "{icon}",
+      "format-charging": "󰂄",
+      "format-plugged": "󰂄",
+      "format-icons": [
+        "󰁺",
+        "󰁻",
+        "󰁼",
+        "󰁽",
+        "󰁾",
+        "󰁿",
+        "󰂀",
+        "󰂁",
+        "󰂂",
+        "󰁹"
+      ],
+      "states": {
+        "warning": 25,
+        "critical": 10
+      },
+      "tooltip-format": "Заряд: {capacity}% · {time}"
+    },
+    "custom/notification": {
+      "exec": "swaync-client -swb",
+      "return-type": "json",
+      "format": "{icon}",
+      "format-icons": {
+        "notification": "󰂚",
+        "none": "󰂜",
+        "dnd-notification": "󰂠",
+        "dnd-none": "󰂠",
+        "inhibited-notification": "󰂛",
+        "inhibited-none": "󰪑",
+        "dnd-inhibited-notification": "󰂛",
+        "dnd-inhibited-none": "󰪑"
+      },
+      "on-click": "swaync-client -t -sw",
+      "on-click-right": "swaync-client -d -sw",
+      "escape": true
+    },
+    "custom/power": {
+      "format": "󰐥",
+      "tooltip": "Питание / выход",
+      "on-click": "$HOME/.local/bin/pixelrail-power"
+    }
+  },
+  {
+    "name": "hero",
+    "layer": "bottom",
+    "position": "top",
+    "width": 440,
+    "height": 105,
+    "margin-top": 17,
+    "margin-right": 24,
+    "exclusive": false,
+    "passthrough": true,
+    "modules-right": [
+      "custom/hero"
+    ],
+    "custom/hero": {
+      "exec": "$HOME/.local/bin/pixelrail-clock",
+      "interval": 30,
+      "format": "{}",
+      "escape": false,
+      "tooltip": false
+    }
+  }
+]

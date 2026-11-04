@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Existing multimedia actions, one qs IPC; original tools only if IPC is unavailable.
+set -euo pipefail
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+action="${1:-}"
+case "$action" in volume-up|volume-down|volume-mute|brightness-up|brightness-down) ;; *) echo 'Usage: pixelrail-system {volume-up|volume-down|volume-mute|brightness-up|brightness-down}' >&2; exit 2;; esac
+config="${PIXELRAIL_QML:-$script_dir/../quickshell/shell.qml}"
+for binary in qs quickshell; do
+    if command -v "$binary" >/dev/null 2>&1; then
+        if result="$("$binary" ipc -p "$config" call system action "$action" 2>/dev/null)"; then
+            [[ "$result" == true ]] && exit 0
+            echo "PixelRail: $action — устройство недоступно" >&2
+            exit 1
+        fi
+        break
+    fi
+done
+case "$action" in
+  volume-up) exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+ ;;
+  volume-down) exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
+  volume-mute) exec wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
+  brightness-up) exec brightnessctl -c backlight set +5% ;;
+  brightness-down) exec brightnessctl -c backlight set 5%- ;;
+esac

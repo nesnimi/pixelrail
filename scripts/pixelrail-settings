@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Same Control Center process/window, no independent settings daemon.
+set -euo pipefail
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+exec "$script_dir/pixelrail-control" settings

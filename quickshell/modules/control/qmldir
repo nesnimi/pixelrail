@@ -1,0 +1,9 @@
+module PixelRail.Control
+singleton DesktopState 1.0 DesktopState.qml
+ControlSlider 1.0 ControlSlider.qml
+LiveSlider 1.0 LiveSlider.qml
+KeyboardState 1.0 KeyboardState.qml
+SettingsActions 1.0 SettingsActions.qml
+SettingsCard 1.0 SettingsCard.qml
+IconStylePicker 1.0 IconStylePicker.qml
+BluetoothActions 1.0 BluetoothActions.qml

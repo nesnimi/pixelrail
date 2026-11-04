@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Plain Pango markup; no persistent clock daemon.
+printf '<span size="44000" weight="bold">%s</span>\n<span size="medium" weight="semibold">%s</span>\n' \
+  "$(date '+%H:%M')" "$(LC_TIME=${LC_TIME:-en_US.UTF-8} date '+%A · %d %B' 2>/dev/null || date '+%a · %d %b')"

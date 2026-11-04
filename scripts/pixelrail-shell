@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Serialize startup across PixelRail releases and confirm IPC before retiring old ones.
+set -euo pipefail
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+config="${PIXELRAIL_QML:-$script_dir/../quickshell/shell.qml}"
+requested_config="$config"
+if ! config="$(readlink -f -- "$requested_config")" || [[ ! -f "$config" ]]; then
+    exec "$script_dir/pixelrail-shell-error" "QML не найден: $requested_config"
+fi
+if command -v python3 >/dev/null 2>&1; then
+    if python3 "$script_dir/lifecycle.py" "$config"; then
+        exit 0
+    fi
+fi
+exec "$script_dir/pixelrail-shell-error" "ошибка запуска PixelRail; прежний релиз сохранён при отказе запуска"

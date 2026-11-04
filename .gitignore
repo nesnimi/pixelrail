@@ -1,0 +1,25 @@
+*.bak
+*.backup
+*.old
+*.swp
+*.tmp
+*.part
+.DS_Store
+*~
+.env
+.env.*
+*.log
+.cache/
+__pycache__/
+
+quickshell/native/**/libpixelraillease.so
+quickshell/native/**/build-info.json
+dist/
+# Local reference artwork and development captures are not licensed release assets.
+/pixelrail_1.png
+/pixelrail_2.png
+/docs/design/screenshots/
+/RELEASE.json
+/.config/
+/.local/
+/.ssh/

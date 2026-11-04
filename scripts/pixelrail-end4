@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Preserve non-menu operations; all menu surfaces go through the shared shell.
+set -euo pipefail
+action="${1:-keys}"
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+notify() { command -v notify-send >/dev/null && notify-send 'PixelRail' "$1" || printf '%s\n' "$1" >&2; }
+case "$action" in
+  keys|windows|controls|media|emoji|wallpaper|session) exec "$script_dir/pixelrail-menu" "$action" ;;
+  browser)
+    for browser in google-chrome-stable google-chrome chromium firefox; do
+      if command -v "$browser" >/dev/null; then exec "$browser"; fi
+    done
+    exec xdg-open 'https://www.google.com' ;;
+  code)
+    for editor in code codium zed; do
+      if command -v "$editor" >/dev/null; then exec "$editor"; fi
+    done
+    exec kitty -e nano ;;
+  taskmanager)
+    if command -v btop >/dev/null; then exec kitty -e btop; fi
+    exec kitty -e top ;;
+  bar) exec "$script_dir/pixelrail-panel" toggle ;;
+  picker)
+    if command -v hyprpicker >/dev/null; then exec hyprpicker -a; fi
+    notify 'Установи hyprpicker: sudo pacman -S hyprpicker' ;;
+  screenshot|screenshot-save)
+    if [[ "$action" == screenshot ]]; then grim - | wl-copy --type image/png; else
+      dir="$HOME/Pictures/Screenshots"; mkdir -p "$dir"
+      file="$dir/$(date +%F_%H-%M-%S).png"
+      grim "$file"; wl-copy --type image/png < "$file"; notify "Снимок: $file"
+    fi ;;
+  record-region|record-screen)
+    command -v wf-recorder >/dev/null || { notify 'Установи wf-recorder'; exit 1; }
+    runtime="${XDG_RUNTIME_DIR:-/tmp}"; pidfile="$runtime/pixelrail-wf-recorder-${UID}.pid"
+    if [[ -f "$pidfile" ]]; then
+      oldpid="$(cat "$pidfile")"
+      if [[ "$oldpid" =~ ^[0-9]+$ ]] && [[ -r "/proc/$oldpid/cmdline" ]] && tr '\0' ' ' < "/proc/$oldpid/cmdline" | grep -Fq 'wf-recorder'; then
+        kill -INT "$oldpid" 2>/dev/null || true
+        rm -f "$pidfile"; notify 'Запись остановлена'; exit 0
+      fi
+      rm -f "$pidfile"
+    fi
+    dir="$HOME/Videos/Recordings"; mkdir -p "$dir"
+    file="$dir/$(date +%F_%H-%M-%S).mp4"
+    if [[ "$action" == record-region ]]; then
+      geometry="$(slurp)" || exit 0
+      [[ -n "$geometry" ]] || exit 0
+      nohup wf-recorder -g "$geometry" -f "$file" >/dev/null 2>&1 < /dev/null &
+    else
+      nohup wf-recorder -f "$file" >/dev/null 2>&1 < /dev/null &
+    fi
+    echo "$!" > "$pidfile"; notify "Запись началась: $file" ;;
+  *) echo "Unknown action: $action" >&2; exit 2 ;;
+esac

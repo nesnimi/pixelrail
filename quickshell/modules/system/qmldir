@@ -1,0 +1,7 @@
+module PixelRail.System
+singleton SystemControls 1.0 SystemControls.qml
+SystemState 1.0 SystemState.qml
+OsdController 1.0 OsdController.qml
+SystemOsd 1.0 SystemOsd.qml
+singleton SessionState 1.0 SessionState.qml
+singleton ScreenshotState 1.0 ScreenshotState.qml

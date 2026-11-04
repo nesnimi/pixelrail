@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Restore the persisted choice using the same serialized swaybg manager as the picker.
+set -euo pipefail
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+exec python3 "$script_dir/wallpapers.py" start

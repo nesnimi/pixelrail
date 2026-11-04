@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+"""Offline cursor integration preview. Never installs themes or changes live settings."""
+import argparse
+import json
+import os
+from pathlib import Path
+ROOT=Path(__file__).resolve().parent.parent
+THEMES=('GoogleDot-Black','GoogleDot-White')
+p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=('status','prepare'));p.add_argument('--theme',choices=THEMES,default=THEMES[0]);p.add_argument('--size',type=int,choices=(24,28,32),default=24);p.add_argument('--output',type=Path,default=ROOT/'.cache/cursor-preview');a=p.parse_args()
+roots=[Path(os.environ.get('XDG_DATA_HOME',str(Path.home()/'.local/share')))/'icons',Path.home()/'.icons']+[Path(value)/'icons' for value in os.environ.get('XDG_DATA_DIRS','/usr/local/share:/usr/share').split(':') if value]
+installed=[name for name in THEMES if any((root/name/'cursors').is_dir() for root in roots)]
+prepared=[name for name in THEMES if (ROOT/'.cache/cursor-assets'/name/'cursors/left_ptr').is_file()]
+if a.command=='status':print(json.dumps({'installed':installed,'prepared':prepared,'preparedRoot':str(ROOT/'.cache/cursor-assets'),'supported':THEMES,'sizes':[24,28,32]}))
+else:
+    out=a.output.resolve()
+    if not out.is_relative_to(ROOT):p.error('Preview output must be inside the PixelRail repository/release')
+    out.mkdir(parents=True,exist_ok=True)
+    (out/'cursor.lua').write_text('''-- OPT-IN preview: inspect before manually including in Hyprland Lua.
+hl.env("XCURSOR_THEME", "%s")
+hl.env("XCURSOR_SIZE", "%s")
+-- Use the XCursor theme consistently; GoogleDot upstream is not a Hyprcursor theme.
+hl.config({cursor = {enable_hyprcursor = false}})
+'''%(a.theme,a.size))
+    (out/'environment.txt').write_text('XCURSOR_THEME='+a.theme+'\nXCURSOR_SIZE='+str(a.size)+'\n')
+    (out/'gtk-settings.ini').write_text('[Settings]\ngtk-cursor-theme-name='+a.theme+'\ngtk-cursor-theme-size='+str(a.size)+'\n')
+    print(json.dumps({'preview':str(out),'installed':a.theme in installed,'preparedTheme':str(ROOT/'.cache/cursor-assets'/a.theme) if a.theme in prepared else None,'applied':False}))

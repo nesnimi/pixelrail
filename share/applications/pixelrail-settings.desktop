@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=PixelRail Settings
+Name[ru]=Настройки PixelRail
+Comment=Appearance, icons and shell preferences
+Exec=pixelrail-settings
+TryExec=pixelrail-settings
+Icon=preferences-system
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=PixelRail;Material;Theme;

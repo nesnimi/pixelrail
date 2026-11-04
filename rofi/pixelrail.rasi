@@ -1,0 +1,80 @@
+/* PixelRail v0.4 — common dark theme for Rofi menus. */
+configuration {
+    modi: "drun";
+    show-icons: true;
+    drun-display-format: "{name}";
+    matching: "fuzzy";
+    font: "Sans 13";
+    terminal: "kitty";
+}
+* {
+    background: #111827;
+    surface: #1c2940;
+    selected: #2e4769;
+    text: #f4f7ff;
+    subdued: #bbcbe2;
+    outline: #7596c8;
+    accent: #b3d3ff;
+    background-color: transparent;
+    text-color: @text;
+    spacing: 0;
+}
+window {
+    location: center;
+    anchor: center;
+    y-offset: 0px;
+    width: 620px;
+    border: 2px;
+    border-radius: 24px;
+    border-color: @outline;
+    background-color: @background;
+    padding: 16px;
+}
+mainbox {
+    children: [inputbar, listview];
+    spacing: 12px;
+    background-color: @background;
+}
+inputbar {
+    children: [entry];
+    padding: 16px 20px;
+    border-radius: 18px;
+    background-color: @surface;
+}
+entry {
+    text-color: @text;
+    background-color: transparent;
+    placeholder: "Поиск…";
+    placeholder-color: @subdued;
+    cursor: text;
+}
+listview {
+    columns: 1;
+    lines: 7;
+    fixed-height: false;
+    scrollbar: false;
+    spacing: 5px;
+    background-color: @background;
+}
+element {
+    children: [element-icon, element-text];
+    spacing: 14px;
+    padding: 11px 14px;
+    border-radius: 13px;
+    background-color: @background;
+    text-color: @text;
+}
+element normal.normal, element alternate.normal {
+    background-color: @background;
+    text-color: @text;
+}
+element selected.normal, element selected.active, element selected.urgent {
+    background-color: @selected;
+    text-color: @text;
+}
+element-text {
+    text-color: @text;
+    background-color: transparent;
+    highlight: bold #b3d3ff;
+}
+element-icon { size: 27px; background-color: transparent; }

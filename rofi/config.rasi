@@ -1,0 +1,10 @@
+configuration {
+  modi: "drun,run";
+  show-icons: true;
+  drun-display-format: "{name}";
+  display-drun: "Apps";
+  font: "JetBrainsMono Nerd Font 12";
+  location: 0;
+  terminal: "kitty";
+}
+@theme "pixelrail"

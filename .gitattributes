@@ -1,0 +1,7 @@
+/.cache export-ignore
+/dist export-ignore
+/pixelrail_1.png export-ignore
+/pixelrail_2.png export-ignore
+/docs/design/screenshots export-ignore
+*.png binary
+*.ttf binary

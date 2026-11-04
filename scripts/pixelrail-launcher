@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Toggle the approved launcher through Quickshell IPC.
+set -euo pipefail
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+root="$(cd -- "$script_dir/.." && pwd)"
+config="${PIXELRAIL_QML:-$root/quickshell/shell.qml}"
+if [[ -f "$config" ]]; then
+    for binary in qs quickshell; do
+        if command -v "$binary" >/dev/null 2>&1 &&
+           "$binary" ipc -p "$config" call launcher toggle >/dev/null 2>&1; then
+            exit 0
+        fi
+    done
+fi
+exec "$script_dir/pixelrail-shell-error" launcher

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+DIR="${XDG_CACHE_HOME:-$HOME/.cache}/pixelrail"
+mkdir -p "$DIR"
+STATE="$DIR/profile"
+current="$(cat "$STATE" 2>/dev/null || echo battery)"
+[[ "$current" == performance ]] || current=battery
+case "${1:-status}" in
+  battery|performance)
+    temporary="$(mktemp "$DIR/.profile.XXXXXX")"
+    trap 'rm -f -- "$temporary"' EXIT
+    printf '%s\n' "$1" > "$temporary"
+    mv -f -- "$temporary" "$STATE"
+    trap - EXIT
+    if command -v hyprctl >/dev/null 2>&1 && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+      hyprctl reload >/dev/null 2>&1 || true
+    fi
+    command -v notify-send >/dev/null && notify-send 'PixelRail' "Visual profile: $1 (CPU/GPU policy unchanged)" || true
+    ;;
+  toggle)
+    if [[ "$current" == performance ]]; then exec "$0" battery; else exec "$0" performance; fi
+    ;;
+  status-waybar)
+    if [[ "$current" == performance ]]; then
+      printf '{"text":"󰓅","tooltip":"Visual mode: performance · click to switch","class":"performance"}\n'
+    else
+      printf '{"text":"󰖙","tooltip":"Visual mode: battery · click to switch","class":"battery"}\n'
+    fi
+    ;;
+  status) printf '%s\n' "$current" ;;
+  *) echo 'Usage: pixelrail-profile {battery|performance|toggle|status|status-waybar}' >&2; exit 2 ;;
+esac

@@ -1,0 +1,48 @@
+@define-color surface rgba(18, 23, 37, 0.89);
+@define-color surface_hover rgba(113, 139, 184, 0.23);
+@define-color lavender #b9c6ff;
+@define-color cyan #8ed8e8;
+@define-color text #ecedfb;
+@define-color muted #a5b2cd;
+* { font-family: "JetBrainsMono Nerd Font", "Noto Sans", sans-serif; border: 0; }
+window#waybar.rail {
+  background: @surface;
+  color: @text;
+  border-radius: 24px;
+  border: 1px solid rgba(164, 186, 244, 0.18);
+}
+window#waybar.hero { background: transparent; color: @text; }
+window#waybar.rail button,
+window#waybar.rail #custom-launcher,
+window#waybar.rail #custom-profile,
+window#waybar.rail #custom-notification,
+window#waybar.rail #custom-power,
+window#waybar.rail #network,
+window#waybar.rail #pulseaudio,
+window#waybar.rail #battery {
+  min-width: 37px;
+  min-height: 35px;
+  margin: 2px 4px;
+  border-radius: 14px;
+  font-size: 18px;
+  color: @text;
+  background: transparent;
+  box-shadow: none;
+}
+window#waybar.rail #custom-launcher { color: @lavender; font-size: 23px; }
+window#waybar.rail #custom-profile { color: @cyan; }
+window#waybar.rail button:hover,
+window#waybar.rail #custom-profile:hover,
+window#waybar.rail #custom-launcher:hover,
+window#waybar.rail #custom-power:hover { background: @surface_hover; }
+window#waybar.rail #workspaces button.active { color: @cyan; background: rgba(142,216,232,0.18); }
+window#waybar.rail #battery.warning { color: #ffd6a2; }
+window#waybar.rail #battery.critical { color: #ff9b9b; }
+window#waybar.hero #custom-hero {
+  color: @text;
+  background: transparent;
+  font-family: "Noto Sans", sans-serif;
+  padding: 2px 8px;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.65);
+}
+tooltip { background: #222b40; color: @text; border-radius: 12px; border: 1px solid #60738e; }

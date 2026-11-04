@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Only session daemons; no root, no NVIDIA tuning, no TLP changes.
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+if ! "$script_dir/pixelrail-shell"; then
+  "$script_dir/pixelrail-panel" start || true
+  "$script_dir/pixelrail-notifications" start || true
+fi
+start_unless_running() {
+  local process="$1"; shift
+  if ! pgrep -u "$(id -u)" -x "$process" >/dev/null 2>&1; then
+    nohup "$@" >/dev/null 2>&1 < /dev/null &
+  fi
+}
+start_unless_running swaybg "$HOME/.local/bin/pixelrail-wallpaper"
+start_unless_running hypridle hypridle
+# Network and Bluetooth settings are opened on demand, no tray applets necessary.
+if [[ -x /usr/lib/polkit-kde-authentication-agent-1 ]]; then
+  start_unless_running polkit-kde-auth /usr/lib/polkit-kde-authentication-agent-1
+elif [[ -x /usr/lib/hyprpolkitagent/hyprpolkitagent ]]; then
+  start_unless_running hyprpolkitagent /usr/lib/hyprpolkitagent/hyprpolkitagent
+fi
+if command -v cliphist >/dev/null && command -v wl-paste >/dev/null; then
+  "$script_dir/pixelrail-clipboard-watch" || true
+fi

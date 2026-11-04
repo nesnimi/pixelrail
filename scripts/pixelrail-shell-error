@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# No automatic restart, terminal launch, or alternative menu on IPC failure.
+set -euo pipefail
+script_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+printf -v recovery '%q' "$script_dir/pixelrail-shell"
+message="Quickshell недоступен (${1:-IPC}). Откройте терминал Super+Return и выполните: $recovery. Если запуск не удался, проверьте вывод и QML (PIXELRAIL_QML)."
+printf 'PixelRail: %s\n' "$message" >&2
+if command -v notify-send >/dev/null 2>&1; then
+    notify-send 'PixelRail: меню недоступно' "$message" >/dev/null 2>&1 || true
+fi
+exit 1
